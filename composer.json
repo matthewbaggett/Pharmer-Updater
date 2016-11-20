@@ -1,0 +1,14 @@
+{
+    "name": "matthewbaggett/pharmer-updater",
+    "authors": [
+        {
+            "name": "Matthew Baggett",
+            "email": "matthew@baggett.me"
+        }
+    ],
+    "require": {
+        "pwfisher/command-line-php": "dev-master",
+        "guzzlehttp/guzzle": "^6.2",
+        "raveren/kint": "^1.0"
+    }
+}

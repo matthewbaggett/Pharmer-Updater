@@ -1,0 +1,62 @@
+#!/usr/bin/php
+<?php
+
+require_once("vendor/autoload.php");
+
+$args = CommandLine::parseArgs($_SERVER['argv']);
+
+if(!isset($args['jenkins'])){
+    die("--jenkins http://jenkins.example.com is a required argument!\n");
+}
+if(!isset($args['server'])){
+    die("--server http://server.example.com is a required argument!\n");
+}
+if(!isset($args['key'])){
+    die("--key xyz ... No access key set");
+}
+
+
+$client = new \GuzzleHttp\Client();
+$jenkinsResult = $client->request(
+    'GET',
+    $args['jenkins'] . "/api/json?pretty=false",
+    [
+        'headers' => [
+            'Content-type' => 'application-json',
+            'Accept'       => 'application-json',
+        ]
+    ]
+);
+if($jenkinsResult->getStatusCode() == 200) {
+    $jenkins = json_decode($jenkinsResult->getBody());
+    $reportJobs = [];
+    foreach($jenkins->jobs as $job){
+        if(property_exists($job, 'color')) {
+            $reportJobs[] = [
+                'name' => $job->name,
+                'status' => $job->color == 'blue' ? 'okay' : 'fail'
+
+            ];
+        }
+    }
+    $json = [
+        'key' => $args['key'],
+        'jobs' => $reportJobs,
+    ];
+
+    $updateServiceResult = $client->request(
+        'POST',
+        $args['server'] . "/v1/update",
+        [
+            'json' => $json,
+        ]
+    );
+    if($updateServiceResult->getStatusCode() == 200) {
+        $updateJson = json_decode($updateServiceResult->getBody()->getContents());
+        die("Successfully updated. New Score is {$updateJson->NewScore}\n");
+    }else{
+        die("Failed to connect to {$args['server']}\n");
+    }
+}else{
+    die("Failed to connect to {$args['jenkins']}\n");
+}
