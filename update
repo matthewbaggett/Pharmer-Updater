@@ -34,7 +34,7 @@ if($jenkinsResult->getStatusCode() == 200) {
         if(property_exists($job, 'color')) {
             $reportJobs[] = [
                 'name' => $job->name,
-                'status' => $job->color == 'blue' ? 'okay' : 'fail'
+                'status' => $job->color != 'red' ? 'okay' : 'fail'
 
             ];
         }
